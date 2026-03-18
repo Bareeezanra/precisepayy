@@ -1,17 +1,17 @@
-import { homeTemplate, initHome } from './pages/home.js';
-import { featureTemplate, initFeature } from './pages/feature.js';
-import { showcaseTemplate, initShowcase } from './pages/showcase.js';
-import { pricingTemplate, initPricing } from './pages/pricing.js';
+import { homeTemplate, initHome } from "./pages/home.js";
+import { featureTemplate, initFeature } from "./pages/feature.js";
+import { showcaseTemplate, initShowcase } from "./pages/showcase.js";
+import { pricingTemplate, initPricing } from "./pages/pricing.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const appContainer = document.getElementById("app");
   if (!appContainer) return;
 
   const routes = {
-    "home": { template: homeTemplate, init: initHome },
-    "feature": { template: featureTemplate, init: initFeature },
-    "showcase": { template: showcaseTemplate, init: initShowcase },
-    "pricing": { template: pricingTemplate, init: initPricing }
+    home: { template: homeTemplate, init: initHome },
+    feature: { template: featureTemplate, init: initFeature },
+    showcase: { template: showcaseTemplate, init: initShowcase },
+    pricing: { template: pricingTemplate, init: initPricing },
   };
 
   function loadRoute(route) {
@@ -19,23 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
       route = "home";
     }
 
-    // Set HTML
     appContainer.innerHTML = routes[route].template;
 
-    // Run initialization
     if (typeof routes[route].init === "function") {
       routes[route].init();
     }
 
-    // specific event listeners
     if (route === "home") {
       setupProductivityForm();
     }
-    
-    // update navbar
+
     updateNavbarActiveState(route);
-    
-    // scroll to top
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -45,13 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRoute(hash);
   }
 
-  // Handle hash changes
   window.addEventListener("hashchange", handleRoute);
-  
-  // Initial load
+
   handleRoute();
 
-  // Setup navbar interactions
   setupNavbar();
 });
 
@@ -76,7 +68,9 @@ function setupNavbar() {
     hamburger.addEventListener("click", () => {
       hamburger.classList.toggle("active");
       navMenu.classList.toggle("open");
-      document.body.style.overflow = navMenu.classList.contains("open") ? "hidden" : "";
+      document.body.style.overflow = navMenu.classList.contains("open")
+        ? "hidden"
+        : "";
     });
 
     navLinks.forEach((link) => {

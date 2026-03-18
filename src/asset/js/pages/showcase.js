@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 export const showcaseTemplate = `
 <!-- ======================== SHOWCASE HERO ======================== -->
     <section class="showcase-hero" id="showcase-hero">
@@ -286,9 +285,10 @@ export const showcaseTemplate = `
 `;
 
 export function initShowcase() {
-  // specific initialization after injection
-  const fadeElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right');
+  const fadeElements = document.querySelectorAll(
+    ".fade-in-up, .fade-in-left, .fade-in-right",
+  );
   setTimeout(() => {
-    fadeElements.forEach(el => el.classList.add('visible'));
+    fadeElements.forEach((el) => el.classList.add("visible"));
   }, 100);
 }

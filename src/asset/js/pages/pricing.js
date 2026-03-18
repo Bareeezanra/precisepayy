@@ -1,4 +1,3 @@
-
 export const pricingTemplate = `
 <!-- ======================== PRICING HEADER ======================== -->
     <section class="pricing-header fade-in-up">
@@ -258,15 +257,18 @@ export const pricingTemplate = `
 `;
 
 export function initPricing() {
-  const fadeElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right');
+  const fadeElements = document.querySelectorAll(
+    ".fade-in-up, .fade-in-left, .fade-in-right",
+  );
   setTimeout(() => {
-    fadeElements.forEach(el => el.classList.add('visible'));
+    fadeElements.forEach((el) => el.classList.add("visible"));
   }, 100);
 
-  // ---- Pricing Toggle Logic ----
   const btnMonthly = document.getElementById("btnMonthly");
   const btnAnnual = document.getElementById("btnAnnual");
-  const priceAmounts = document.querySelectorAll(".pricing-card__price .amount");
+  const priceAmounts = document.querySelectorAll(
+    ".pricing-card__price .amount",
+  );
 
   if (btnMonthly && btnAnnual) {
     btnMonthly.addEventListener("click", () => {
@@ -287,26 +289,23 @@ export function initPricing() {
   }
 
   function updatePrices(planType) {
-    priceAmounts.forEach(amountEl => {
-      // Small animation
+    priceAmounts.forEach((amountEl) => {
       amountEl.style.opacity = 0;
-      
+
       setTimeout(() => {
         const monthlyPrice = parseInt(amountEl.getAttribute("data-monthly"));
         if (planType === "monthly") {
           amountEl.textContent = monthlyPrice;
         } else {
-          // Calculate 20% discount from monthly price
           const discountedPrice = Math.floor(monthlyPrice * 0.8);
           amountEl.textContent = discountedPrice;
         }
         amountEl.style.opacity = 1;
-      }, 200); // Wait for fade out
+      }, 200);
     });
   }
-  
-  // Initialize price transition style
-  priceAmounts.forEach(amountEl => {
+
+  priceAmounts.forEach((amountEl) => {
     amountEl.style.transition = "opacity 0.2s ease";
   });
 }
