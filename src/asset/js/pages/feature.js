@@ -142,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 export const featureTemplate = `
 <!-- ======================== FEATURE HERO BANNER ======================== -->
     <section class="feature-hero" id="feature-hero">
@@ -615,8 +614,10 @@ export const featureTemplate = `
 
 export function initFeature() {
   // specific initialization after injection
-  const fadeElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right');
+  const fadeElements = document.querySelectorAll(
+    ".fade-in-up, .fade-in-left, .fade-in-right",
+  );
   setTimeout(() => {
-    fadeElements.forEach(el => el.classList.add('visible'));
+    fadeElements.forEach((el) => el.classList.add("visible"));
   }, 100);
 }

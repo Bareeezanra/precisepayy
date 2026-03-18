@@ -31,7 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateNavbarActiveState(route);
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
   }
 
   function handleRoute() {
@@ -61,8 +63,11 @@ function setupNavbar() {
     }
   };
 
-  window.addEventListener("scroll", handleNavbarScroll);
-  handleNavbarScroll();
+  window.addEventListener("scroll", handleNavbarScroll, { passive: true });
+
+  requestAnimationFrame(() => {
+    handleNavbarScroll();
+  });
 
   if (hamburger && navMenu) {
     hamburger.addEventListener("click", () => {

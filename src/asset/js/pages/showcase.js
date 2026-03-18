@@ -88,19 +88,19 @@ export const showcaseTemplate = `
       <div class="container">
         <div class="stats-grid">
           <div class="stat-item fade-in-up">
-            <h2 class="stat-item__number">10,000+</h2>
+            <h2 class="stat-item__number counter" data-target="10000" data-suffix="+">0</h2>
             <p class="stat-item__label">Companies Trust Us</p>
           </div>
           <div class="stat-item fade-in-up" style="transition-delay: 0.1s">
-            <h2 class="stat-item__number">500K+</h2>
+            <h2 class="stat-item__number counter" data-target="500" data-suffix="K+">0</h2>
             <p class="stat-item__label">Employees Managed</p>
           </div>
           <div class="stat-item fade-in-up" style="transition-delay: 0.2s">
-            <h2 class="stat-item__number">189</h2>
+            <h2 class="stat-item__number counter" data-target="189">0</h2>
             <p class="stat-item__label">Countries Supported</p>
           </div>
           <div class="stat-item fade-in-up" style="transition-delay: 0.3s">
-            <h2 class="stat-item__number">99.9%</h2>
+            <h2 class="stat-item__number counter" data-target="99.9" data-suffix="%" data-float="true">0</h2>
             <p class="stat-item__label">Uptime Guarantee</p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export const showcaseTemplate = `
                 can now focus on strategic initiatives instead of manual payroll tasks.
               </p>
               <div class="story-profile">
-                <img src="../asset/Image/Person.png" alt="Sarah Zalfa" class="story-profile__img" style="object-fit:cover;object-position:top;" />
+                <img src="../asset/Image/Person.webp" alt="Sarah Zalfa" class="story-profile__img" width="60" height="60" loading="lazy" style="object-fit:cover;object-position:top;" />
                 <div class="story-profile__info">
                   <h4>Sarah Zalfa</h4>
                   <p>HR Director</p>
@@ -148,7 +148,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/techcorpin.png" alt="TechCorp office space" />
+            <img src="../asset/Image/techcorpin.png" alt="TechCorp office space" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -180,7 +180,7 @@ export const showcaseTemplate = `
               </p>
               <div class="story-profile">
                 <!-- Fallback to a part of Videoimg since we don't have all avatar images -->
-                <img src="../asset/Image/Videoimg.png" alt="Michael Jchang" class="story-profile__img" style="object-fit:cover;object-position:center left;" />
+                <img src="../asset/Image/Videoimg.webp" alt="Michael Jchang" class="story-profile__img" width="60" height="60" loading="lazy" style="object-fit:cover;object-position:center left;" />
                 <div class="story-profile__info">
                   <h4>Michael Jchang</h4>
                   <p>Chief Finance Officer</p>
@@ -190,7 +190,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/globalsolutions.png" alt="Global Solutions team" />
+            <img src="../asset/Image/globalsolutions.png" alt="Global Solutions team" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -222,7 +222,7 @@ export const showcaseTemplate = `
               </p>
               <div class="story-profile">
                 <!-- Reusing person placeholder -->
-                <img src="../asset/Image/Person.png" alt="Emily Rodriguez" class="story-profile__img" style="object-fit:cover;object-position:bottom left;" />
+                <img src="../asset/Image/Person.webp" alt="Emily Rodriguez" class="story-profile__img" width="60" height="60" loading="lazy" style="object-fit:cover;object-position:bottom left;" />
                 <div class="story-profile__info">
                   <h4>Emily Rodriguez</h4>
                   <p>Operations Manager</p>
@@ -232,7 +232,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/creativeagent.png" alt="Creative Agency meeting" />
+            <img src="../asset/Image/creativeagent.png" alt="Creative Agency meeting" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -264,7 +264,7 @@ export const showcaseTemplate = `
               </p>
               <div class="story-profile">
                 <!-- Using another section of video img -->
-                <img src="../asset/Image/Videoimg.png" alt="David Kim" class="story-profile__img" style="object-fit:cover;" />
+                <img src="../asset/Image/Videoimg.webp" alt="David Kim" class="story-profile__img" width="60" height="60" loading="lazy" style="object-fit:cover;" />
                 <div class="story-profile__info">
                   <h4>David Kim</h4>
                   <p>CEO</p>
@@ -274,7 +274,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/startupvnture.png" alt="StartUp Ventures office" />
+            <img src="../asset/Image/startupvnture.png" alt="StartUp Ventures office" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -291,4 +291,60 @@ export function initShowcase() {
   setTimeout(() => {
     fadeElements.forEach((el) => el.classList.add("visible"));
   }, 100);
+
+  // Number Counter Animation for Stats
+  const counters = document.querySelectorAll(".counter");
+
+  const observerOptionsStats = {
+    threshold: 0.5,
+  };
+
+  const observerStats = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const counter = entry.target;
+        if (!counter.classList.contains("animated")) {
+          counter.classList.add("animated");
+          animateCounter(counter);
+        }
+        observerStats.unobserve(counter);
+      }
+    });
+  }, observerOptionsStats);
+
+  counters.forEach((counter) => observerStats.observe(counter));
+
+  function animateCounter(counter) {
+    const target = parseFloat(counter.getAttribute("data-target"));
+    const suffix = counter.getAttribute("data-suffix") || "";
+    const isFloat = counter.hasAttribute("data-float");
+    const duration = 2000; // 2 seconds animation
+
+    // Calculate increment based on 60fps (approx 16ms per frame)
+    const frameDuration = 1000 / 60;
+    const totalFrames = Math.round(duration / frameDuration);
+    const increment = target / totalFrames;
+
+    let current = 0;
+
+    const updateCount = () => {
+      current += increment;
+      if (current < target) {
+        if (isFloat) {
+          counter.innerText = current.toFixed(1) + suffix;
+        } else {
+          counter.innerText = Math.ceil(current).toLocaleString() + suffix;
+        }
+        requestAnimationFrame(updateCount);
+      } else {
+        if (isFloat) {
+          counter.innerText = target.toFixed(1) + suffix;
+        } else {
+          counter.innerText = target.toLocaleString() + suffix;
+        }
+      }
+    };
+
+    requestAnimationFrame(updateCount);
+  }
 }

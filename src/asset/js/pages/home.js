@@ -1,5 +1,3 @@
-
-
 export const homeTemplate = `
 <!-- ======================== HERO SECTION ======================== -->
     <section class="hero" id="home">
@@ -16,8 +14,11 @@ export const homeTemplate = `
         <div class="hero__image fade-in-right">
           <div class="hero__image-wrapper">
             <img
-              src="../asset/Image/Person.png"
+              src="../asset/Image/Person.webp"
               alt="Business professional using PrecisePay"
+              width="600"
+              height="600"
+              fetchpriority="high"
             />
 
             <!-- Floating Card: Analytics -->
@@ -356,7 +357,7 @@ export const homeTemplate = `
     <section class="productivity" id="showcase">
       <div class="container">
         <div class="productivity__media fade-in-left">
-          <img src="../asset/Image/Videoimg.png" alt="Boost productivity" />
+          <img src="../asset/Image/Videoimg.webp" alt="Boost productivity" width="800" height="450" loading="lazy" />
           <div class="productivity__play-btn" id="playBtn">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -395,8 +396,10 @@ export const homeTemplate = `
 
 export function initHome() {
   // specific initialization after injection
-  const fadeElements = document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right');
+  const fadeElements = document.querySelectorAll(
+    ".fade-in-up, .fade-in-left, .fade-in-right",
+  );
   setTimeout(() => {
-    fadeElements.forEach(el => el.classList.add('visible'));
+    fadeElements.forEach((el) => el.classList.add("visible"));
   }, 100);
 }
