@@ -1,5 +1,65 @@
+import { homeTemplate, initHome } from './pages/home.js';
+import { featureTemplate, initFeature } from './pages/feature.js';
+import { showcaseTemplate, initShowcase } from './pages/showcase.js';
+import { pricingTemplate, initPricing } from './pages/pricing.js';
+
 document.addEventListener("DOMContentLoaded", () => {
+  const appContainer = document.getElementById("app");
+  if (!appContainer) return;
+
+  const routes = {
+    "home": { template: homeTemplate, init: initHome },
+    "feature": { template: featureTemplate, init: initFeature },
+    "showcase": { template: showcaseTemplate, init: initShowcase },
+    "pricing": { template: pricingTemplate, init: initPricing }
+  };
+
+  function loadRoute(route) {
+    if (!routes[route]) {
+      route = "home";
+    }
+
+    // Set HTML
+    appContainer.innerHTML = routes[route].template;
+
+    // Run initialization
+    if (typeof routes[route].init === "function") {
+      routes[route].init();
+    }
+
+    // specific event listeners
+    if (route === "home") {
+      setupProductivityForm();
+    }
+    
+    // update navbar
+    updateNavbarActiveState(route);
+    
+    // scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleRoute() {
+    let hash = window.location.hash.substring(1);
+    if (!hash || hash === "") hash = "home";
+    loadRoute(hash);
+  }
+
+  // Handle hash changes
+  window.addEventListener("hashchange", handleRoute);
+  
+  // Initial load
+  handleRoute();
+
+  // Setup navbar interactions
+  setupNavbar();
+});
+
+function setupNavbar() {
   const navbar = document.querySelector(".navbar");
+  const hamburger = document.querySelector(".navbar__hamburger");
+  const navMenu = document.querySelector(".navbar__menu");
+  const navLinks = document.querySelectorAll(".navbar__link");
 
   const handleNavbarScroll = () => {
     if (window.scrollY > 20) {
@@ -12,19 +72,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", handleNavbarScroll);
   handleNavbarScroll();
 
-  const hamburger = document.querySelector(".navbar__hamburger");
-  const navMenu = document.querySelector(".navbar__menu");
-
   if (hamburger && navMenu) {
     hamburger.addEventListener("click", () => {
       hamburger.classList.toggle("active");
       navMenu.classList.toggle("open");
-      document.body.style.overflow = navMenu.classList.contains("open")
-        ? "hidden"
-        : "";
+      document.body.style.overflow = navMenu.classList.contains("open") ? "hidden" : "";
     });
 
-    navMenu.querySelectorAll(".navbar__link").forEach((link) => {
+    navLinks.forEach((link) => {
       link.addEventListener("click", () => {
         hamburger.classList.remove("active");
         navMenu.classList.remove("open");
@@ -32,71 +87,19 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+}
 
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", (e) => {
-      e.preventDefault();
-      const targetId = anchor.getAttribute("href");
-      if (targetId === "#") return;
-      const target = document.querySelector(targetId);
-      if (target) {
-        const navHeight = navbar.offsetHeight;
-        const targetPosition =
-          target.getBoundingClientRect().top + window.scrollY - navHeight - 20;
-        window.scrollTo({ top: targetPosition, behavior: "smooth" });
-      }
-    });
-  });
-
-  const observerOptions = {
-    threshold: 0.15,
-    rootMargin: "0px 0px -50px 0px",
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, observerOptions);
-
-  document
-    .querySelectorAll(".fade-in-up, .fade-in-left, .fade-in-right")
-    .forEach((el) => {
-      observer.observe(el);
-    });
-
-  const featureCards = document.querySelectorAll(".feature-card");
-  featureCards.forEach((card, index) => {
-    card.style.transitionDelay = `${index * 0.1}s`;
-  });
-
-  const sections = document.querySelectorAll("section[id]");
+function updateNavbarActiveState(currentRoute) {
   const navLinks = document.querySelectorAll(".navbar__link");
+  navLinks.forEach((link) => {
+    link.classList.remove("active");
+    if (link.getAttribute("data-nav") === currentRoute) {
+      link.classList.add("active");
+    }
+  });
+}
 
-  const handleActiveNav = () => {
-    const scrollPos = window.scrollY + navbar.offsetHeight + 100;
-
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight;
-      const sectionId = section.getAttribute("id");
-
-      if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
-        navLinks.forEach((link) => {
-          link.classList.remove("active");
-          if (link.getAttribute("href") === `#${sectionId}`) {
-            link.classList.add("active");
-          }
-        });
-      }
-    });
-  };
-
-  window.addEventListener("scroll", handleActiveNav);
-
+function setupProductivityForm() {
   const playBtn = document.querySelector(".productivity__play-btn");
   if (playBtn) {
     playBtn.addEventListener("click", () => {
@@ -123,12 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+}
 
-  function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-  const trustedLogos = document.querySelectorAll(".trusted__logo");
-  trustedLogos.forEach((logo, index) => {
-    logo.style.animationDelay = `${index * 0.15}s`;
-  });
-});
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
