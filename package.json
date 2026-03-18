@@ -1,0 +1,13 @@
+{
+  "name": "pricepay-landing",
+  "version": "1.0.0",
+  "description": "PrecisePay Landing Page",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server src --open=pages/index.html --port=3000",
+    "start": "live-server src --open=pages/index.html --port=3000"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
