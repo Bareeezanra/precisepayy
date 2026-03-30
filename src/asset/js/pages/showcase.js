@@ -148,7 +148,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/techcorpin.png" alt="TechCorp office space" width="600" height="400" loading="lazy" />
+            <img src="../asset/Image/techcorpin.webp" alt="TechCorp office space" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -190,7 +190,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/globalsolutions.png" alt="Global Solutions team" width="600" height="400" loading="lazy" />
+            <img src="../asset/Image/globalsolutions.webp" alt="Global Solutions team" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -232,7 +232,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/creativeagent.png" alt="Creative Agency meeting" width="600" height="400" loading="lazy" />
+            <img src="../asset/Image/creativeagent.webp" alt="Creative Agency meeting" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
@@ -274,7 +274,7 @@ export const showcaseTemplate = `
           </div>
           
           <div class="story-card__image">
-            <img src="../asset/Image/startupvnture.png" alt="StartUp Ventures office" width="600" height="400" loading="lazy" />
+            <img src="../asset/Image/startupvnture.webp" alt="StartUp Ventures office" width="600" height="400" loading="lazy" />
           </div>
         </div>
 
