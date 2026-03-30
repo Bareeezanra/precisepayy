@@ -2,6 +2,13 @@ import { homeTemplate, initHome } from "./pages/home.js";
 import { featureTemplate, initFeature } from "./pages/feature.js";
 import { showcaseTemplate, initShowcase } from "./pages/showcase.js";
 import { pricingTemplate, initPricing } from "./pages/pricing.js";
+import { loginTemplate, initLogin } from "./pages/login.js";
+import { registerTemplate, initRegister } from "./pages/register.js";
+import { forgotPasswordTemplate, initForgotPassword } from "./pages/forgotPassword.js";
+import { dashboardTemplate, initDashboard } from "./pages/dashboard.js";
+import { payslipsTemplate, initPayslips } from "./pages/payslips.js";
+import { timesheetTemplate, initTimesheet } from "./pages/timesheet.js";
+import { profileTemplate, initProfile } from "./pages/profile.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const appContainer = document.getElementById("app");
@@ -12,11 +19,42 @@ document.addEventListener("DOMContentLoaded", () => {
     feature: { template: featureTemplate, init: initFeature },
     showcase: { template: showcaseTemplate, init: initShowcase },
     pricing: { template: pricingTemplate, init: initPricing },
+    login: { template: loginTemplate, init: initLogin },
+    register: { template: registerTemplate, init: initRegister },
+    "forgot-password": { template: forgotPasswordTemplate, init: initForgotPassword },
+    dashboard: { template: dashboardTemplate, init: initDashboard },
+    payslips: { template: payslipsTemplate, init: initPayslips },
+    timesheet: { template: timesheetTemplate, init: initTimesheet },
+    profile: { template: profileTemplate, init: initProfile },
   };
+
+  // Pages that hide navbar/footer
+  const fullscreenPages = ["dashboard", "payslips", "timesheet", "profile"];
+  // Pages that are auth pages (hide navbar/footer too)
+  const authPages = ["login", "register", "forgot-password"];
 
   function loadRoute(route) {
     if (!routes[route]) {
       route = "home";
+    }
+
+    // Clean up dashboard-active class
+    document.body.classList.remove("dashboard-active");
+
+    // Handle nav/footer visibility
+    const navbar = document.getElementById("navbar");
+    const footer = document.getElementById("footer");
+
+    if (fullscreenPages.includes(route)) {
+      document.body.classList.add("dashboard-active");
+      if (navbar) navbar.style.display = "none";
+      if (footer) footer.style.display = "none";
+    } else if (authPages.includes(route)) {
+      if (navbar) navbar.style.display = "";
+      if (footer) footer.style.display = "none";
+    } else {
+      if (navbar) navbar.style.display = "";
+      if (footer) footer.style.display = "";
     }
 
     appContainer.innerHTML = routes[route].template;
@@ -121,7 +159,8 @@ function setupProductivityForm() {
         setTimeout(() => {
           btn.textContent = "Get Started";
           btn.style.background = "";
-        }, 3000);
+          window.location.hash = "login";
+        }, 1000);
       }
     });
   }

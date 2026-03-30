@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="../asset/css/components/navbar.css" />
     <link rel="stylesheet" href="../asset/css/components/footer.css" />
     <link rel="stylesheet" href="../asset/css/components/responsive.css" />
+    <link rel="stylesheet" href="../asset/css/components/toast.css" />
     <link
       rel="preload"
       href="../asset/css/pages/feature.css"
@@ -68,6 +69,20 @@
     <noscript
       ><link rel="stylesheet" href="../asset/css/pages/pricing.css"
     /></noscript>
+    <link
+      rel="preload"
+      href="../asset/css/pages/auth.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript><link rel="stylesheet" href="../asset/css/pages/auth.css" /></noscript>
+    <link
+      rel="preload"
+      href="../asset/css/pages/dashboard.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript><link rel="stylesheet" href="../asset/css/pages/dashboard.css" /></noscript>
   </head>
   <body>
     <!-- ======================== NAVBAR ======================== -->
@@ -90,7 +105,7 @@
             >Showcase</a
           >
           <a href="#pricing" class="navbar__link" data-nav="pricing">Pricing</a>
-          <button class="navbar__signin">Sign In</button>
+          <a href="#login" class="navbar__signin">Sign In</a>
         </div>
 
         <button
@@ -270,6 +285,11 @@
         </div>
       </div>
     </footer>
+
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Facebook SDK -->
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=parse&version=v18.0&appId=YOUR_FACEBOOK_APP_ID" nonce="randomNonce"></script>
 
     <script type="module" src="../asset/js/main.js"></script>
   </body>
