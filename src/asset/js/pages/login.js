@@ -6,8 +6,7 @@ export const loginTemplate = `
   <div class="auth-container">
     <div class="auth-header">
       <h2>Welcome Back</h2>
-      <p>Please enter your details to sign in.</p>
-      <div class="auth-user-count" id="loginUserCount"></div>
+      <p>Log in to your account to continue.</p>
     </div>
     <form class="auth-form" id="loginForm">
       <div class="form-group">
@@ -19,7 +18,7 @@ export const loginTemplate = `
         <div class="password-wrapper">
           <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
           <button type="button" class="password-toggle" id="toggleLoginPass" aria-label="Show password">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
           </button>
         </div>
       </div>
@@ -117,11 +116,11 @@ function initGoogleSignIn() {
   }
 }
 
-function handleGoogleCredentialResponse(response) {
+async function handleGoogleCredentialResponse(response) {
   // Decode JWT from Google
   const payload = decodeJWT(response.credential);
   if (payload) {
-    const result = socialLogin({
+    const result = await socialLogin({
       name: payload.name,
       email: payload.email,
       picture: payload.picture,
@@ -142,7 +141,7 @@ async function fetchGoogleProfile(accessToken) {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const profile = await res.json();
-    const result = socialLogin({
+    const result = await socialLogin({
       name: profile.name,
       email: profile.email,
       picture: profile.picture,
@@ -172,8 +171,8 @@ function initFacebookLogin() {
       FB.login(
         (response) => {
           if (response.authResponse) {
-            FB.api("/me", { fields: "name,email,picture.width(100)" }, (profile) => {
-              const result = socialLogin({
+            FB.api("/me", { fields: "name,email,picture.width(100)" }, async (profile) => {
+              const result = await socialLogin({
                 name: profile.name,
                 email: profile.email,
                 picture: profile.picture?.data?.url,
@@ -229,13 +228,6 @@ export function initLogin() {
     return;
   }
 
-  // Show user count
-  const countEl = document.getElementById("loginUserCount");
-  const count = getUserCount();
-  if (countEl && count > 0) {
-    countEl.innerHTML = `<span class="user-count-badge">👥 ${count} user${count > 1 ? "s" : ""} terdaftar</span>`;
-  }
-
   // Toggle password visibility
   const toggleBtn = document.getElementById("toggleLoginPass");
   const passInput = document.getElementById("loginPassword");
@@ -244,8 +236,8 @@ export function initLogin() {
       const isPassword = passInput.type === "password";
       passInput.type = isPassword ? "text" : "password";
       toggleBtn.innerHTML = isPassword
-        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
-        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     });
   }
 

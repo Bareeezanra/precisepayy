@@ -1,4 +1,8 @@
-import { requestPasswordReset, resetPassword } from "../utils/userDB.js";
+import {
+  requestPasswordReset,
+  verifyResetToken,
+  resetPassword,
+} from "../utils/userDB.js";
 import { showToast } from "../utils/toast.js";
 
 export const forgotPasswordTemplate = `
@@ -33,7 +37,7 @@ export const forgotPasswordTemplate = `
       </div>
     </div>
 
-    <!-- Step 2: Email Sent Confirmation -->
+    <!-- Step 2: Verification Code -->
     <div id="forgotStep2" style="display: none;">
       <div class="auth-header">
         <div class="auth-icon-circle auth-icon-circle--success">
@@ -50,9 +54,36 @@ export const forgotPasswordTemplate = `
         <button class="auth-btn auth-btn--outline" id="resendBtn">Resend Email</button>
       </div>
       <div class="auth-divider">
-        <span>Or reset here (demo)</span>
+        <span>Enter Verification Code</span>
       </div>
-      <!-- Demo: Reset form inline (normally this would be via email link) -->
+      <form class="auth-form" id="verifyTokenForm">
+        <div class="form-group">
+          <label for="resetTokenInput">Verification Code</label>
+          <input type="text" id="resetTokenInput" placeholder="EX: 123456" required autocomplete="off" style="text-align: center; letter-spacing: 4px; font-weight: bold; font-size: 1.2rem; background: var(--bg-color);" />
+        </div>
+        <button type="submit" class="auth-btn" id="verifyTokenBtn">
+          <span class="btn-text">Verify Code</span>
+          <span class="btn-loader" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner{transform-origin:center;animation:spin .75s infinite linear}@keyframes spin{100%{transform:rotate(360deg)}}</style><circle class="spinner" cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>
+          </span>
+        </button>
+      </form>
+      <div class="auth-footer">
+        <p><a href="#login">← Back to Sign In</a></p>
+      </div>
+    </div>
+
+    <!-- Step 3: Enter New Password -->
+    <div id="forgotStep3" style="display: none;">
+      <div class="auth-header">
+        <div class="auth-icon-circle auth-icon-circle--success">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <h2>Create New Password</h2>
+        <p>Your code is verified! Please enter a strong new password.</p>
+      </div>
       <form class="auth-form" id="resetForm">
         <div class="form-group">
           <label for="newPassword">New Password</label>
@@ -65,17 +96,22 @@ export const forgotPasswordTemplate = `
         </div>
         <div class="form-group">
           <label for="confirmNewPassword">Confirm New Password</label>
-          <input type="password" id="confirmNewPassword" placeholder="••••••••" required minlength="6" />
+          <div class="password-wrapper">
+            <input type="password" id="confirmNewPassword" placeholder="Min. 6 karakter" required minlength="6" />
+            <button type="button" class="password-toggle" id="toggleConfirmNewPass" aria-label="Show password">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
         </div>
-        <button type="submit" class="auth-btn">Reset Password</button>
+        <button type="submit" class="auth-btn">Save Password</button>
       </form>
       <div class="auth-footer">
         <p><a href="#login">← Back to Sign In</a></p>
       </div>
     </div>
 
-    <!-- Step 3: Success -->
-    <div id="forgotStep3" style="display: none;">
+    <!-- Step 4: Success -->
+    <div id="forgotStep4" style="display: none;">
       <div class="auth-header">
         <div class="auth-icon-circle auth-icon-circle--success">
           <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -113,14 +149,13 @@ export function initForgotPassword() {
 
       await new Promise((r) => setTimeout(r, 1200));
 
-      const result = requestPasswordReset(email);
+      const result = await requestPasswordReset(email);
 
       btnText.style.display = "inline";
       btnLoader.style.display = "none";
       submitBtn.disabled = false;
 
       if (result.success) {
-        currentResetToken = result.token;
         showToast(result.message, "success", 5000);
 
         // Show step 2
@@ -147,7 +182,43 @@ export function initForgotPassword() {
     });
   }
 
-  // Step 2: Reset password
+  // Step 2: Verify Token
+  const verifyTokenForm = document.getElementById("verifyTokenForm");
+  if (verifyTokenForm) {
+    verifyTokenForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const code = document.getElementById("resetTokenInput").value.trim();
+      const submitBtn = document.getElementById("verifyTokenBtn");
+      const btnText = submitBtn.querySelector(".btn-text");
+      const btnLoader = submitBtn.querySelector(".btn-loader");
+
+      if (!code) {
+        showToast("Silakan masukkan verification code (token).", "error");
+        return;
+      }
+
+      btnText.style.display = "none";
+      btnLoader.style.display = "inline-flex";
+      submitBtn.disabled = true;
+
+      const result = await verifyResetToken(code);
+
+      btnText.style.display = "inline";
+      btnLoader.style.display = "none";
+      submitBtn.disabled = false;
+
+      if (result.success) {
+        currentResetToken = code;
+        showToast("Kode Valid! Silakan buat password baru.", "success", 3000);
+        document.getElementById("forgotStep2").style.display = "none";
+        document.getElementById("forgotStep3").style.display = "block";
+      } else {
+        showToast(result.message, "error");
+      }
+    });
+  }
+
+  // Step 3: Reset password
   const resetForm = document.getElementById("resetForm");
   if (resetForm) {
     resetForm.addEventListener("submit", async (e) => {
@@ -161,7 +232,10 @@ export function initForgotPassword() {
       }
 
       if (!currentResetToken) {
-        showToast("Token reset tidak valid. Silakan request ulang.", "error");
+        showToast(
+          "Token reset tidak valid. Silakan mulai ulang dari awal.",
+          "error",
+        );
         return;
       }
 
@@ -169,9 +243,9 @@ export function initForgotPassword() {
 
       if (result.success) {
         showToast(result.message, "success", 5000);
-        // Show step 3
-        document.getElementById("forgotStep2").style.display = "none";
-        document.getElementById("forgotStep3").style.display = "block";
+        // Show step 4
+        document.getElementById("forgotStep3").style.display = "none";
+        document.getElementById("forgotStep4").style.display = "block";
         currentResetToken = null;
       } else {
         showToast(result.message, "error");
@@ -179,7 +253,7 @@ export function initForgotPassword() {
     });
   }
 
-  // Toggle password visibility
+  // Toggle password visibility (New Password)
   const toggleBtn = document.getElementById("toggleNewPass");
   const passInput = document.getElementById("newPassword");
   if (toggleBtn && passInput) {
@@ -187,6 +261,19 @@ export function initForgotPassword() {
       const isPassword = passInput.type === "password";
       passInput.type = isPassword ? "text" : "password";
       toggleBtn.innerHTML = isPassword
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    });
+  }
+
+  // Toggle Confirm Password visibility
+  const toggleConfirmBtn = document.getElementById("toggleConfirmNewPass");
+  const confirmPassInput = document.getElementById("confirmNewPassword");
+  if (toggleConfirmBtn && confirmPassInput) {
+    toggleConfirmBtn.addEventListener("click", () => {
+      const isPassword = confirmPassInput.type === "password";
+      confirmPassInput.type = isPassword ? "text" : "password";
+      toggleConfirmBtn.innerHTML = isPassword
         ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
         : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
     });

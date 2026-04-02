@@ -1,4 +1,9 @@
-import { registerUser, socialLogin, getUserCount, isLoggedIn } from "../utils/userDB.js";
+import {
+  registerUser,
+  socialLogin,
+  getUserCount,
+  isLoggedIn,
+} from "../utils/userDB.js";
 import { showToast } from "../utils/toast.js";
 
 export const registerTemplate = `
@@ -7,7 +12,6 @@ export const registerTemplate = `
     <div class="auth-header">
       <h2>Create Account</h2>
       <p>Join us to start managing your payroll like an expert.</p>
-      <div class="auth-user-count" id="regUserCount"></div>
     </div>
     <form class="auth-form" id="registerForm">
       <div class="form-group">
@@ -23,7 +27,7 @@ export const registerTemplate = `
         <div class="password-wrapper">
           <input type="password" id="regPassword" placeholder="Min. 6 karakter" required minlength="6" autocomplete="new-password" />
           <button type="button" class="password-toggle" id="toggleRegPass" aria-label="Show password">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
           </button>
         </div>
         <div class="password-strength" id="passwordStrength">
@@ -41,8 +45,17 @@ export const registerTemplate = `
         <div class="password-wrapper">
           <input type="password" id="regConfirmPassword" placeholder="Min. 6 karakter" required minlength="6" autocomplete="new-password" />
           <button type="button" class="password-toggle" id="toggleRegConfirmPass" aria-label="Show password">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
           </button>
+        </div>
+        <div class="password-strength" id="confirmPasswordStrength">
+          <div class="strength-bars">
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+            <div class="strength-bar"></div>
+          </div>
+          <span class="strength-text" id="confirmStrengthText"></span>
         </div>
       </div>
       <div class="form-options">
@@ -113,23 +126,18 @@ export function initRegister() {
     return;
   }
 
-  // Show user count
-  const countEl = document.getElementById("regUserCount");
-  const count = getUserCount();
-  if (countEl && count > 0) {
-    countEl.innerHTML = `<span class="user-count-badge">👥 Bergabung dengan ${count} user lainnya</span>`;
-  }
-
   // Password strength indicator
   const passInput = document.getElementById("regPassword");
-  const strengthBars = document.querySelectorAll(".strength-bar");
+  const strengthBars = document.querySelectorAll(
+    "#passwordStrength .strength-bar",
+  );
   const strengthText = document.getElementById("strengthText");
 
   if (passInput) {
     passInput.addEventListener("input", () => {
       const val = passInput.value;
       const { score, label, color } = checkPasswordStrength(val);
-      
+
       strengthBars.forEach((bar, i) => {
         if (i < score) {
           bar.style.background = color;
@@ -137,7 +145,7 @@ export function initRegister() {
           bar.style.background = "#e5e7eb";
         }
       });
-      
+
       if (strengthText) {
         strengthText.textContent = val.length > 0 ? label : "";
         strengthText.style.color = color;
@@ -152,21 +160,46 @@ export function initRegister() {
       const isPassword = passInput.type === "password";
       passInput.type = isPassword ? "text" : "password";
       toggleBtn.innerHTML = isPassword
-        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
-        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     });
   }
 
-  // Toggle confirm password visibility
-  const toggleConfirmBtn = document.getElementById("toggleRegConfirmPass");
+  // Confirm password strength indicator & toggle
   const confirmPassInput = document.getElementById("regConfirmPassword");
+  const confirmStrengthBars = document.querySelectorAll(
+    "#confirmPasswordStrength .strength-bar",
+  );
+  const confirmStrengthText = document.getElementById("confirmStrengthText");
+  const toggleConfirmBtn = document.getElementById("toggleRegConfirmPass");
+
+  if (confirmPassInput) {
+    confirmPassInput.addEventListener("input", () => {
+      const val = confirmPassInput.value;
+      const { score, label, color } = checkPasswordStrength(val);
+
+      confirmStrengthBars.forEach((bar, i) => {
+        if (i < score) {
+          bar.style.background = color;
+        } else {
+          bar.style.background = "#e5e7eb";
+        }
+      });
+
+      if (confirmStrengthText) {
+        confirmStrengthText.textContent = val.length > 0 ? label : "";
+        confirmStrengthText.style.color = color;
+      }
+    });
+  }
+
   if (toggleConfirmBtn && confirmPassInput) {
     toggleConfirmBtn.addEventListener("click", () => {
       const isPassword = confirmPassInput.type === "password";
       confirmPassInput.type = isPassword ? "text" : "password";
       toggleConfirmBtn.innerHTML = isPassword
-        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
-        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     });
   }
 
@@ -179,7 +212,8 @@ export function initRegister() {
       const name = document.getElementById("regName").value.trim();
       const email = document.getElementById("regEmail").value.trim();
       const password = document.getElementById("regPassword").value;
-      const confirmPassword = document.getElementById("regConfirmPassword").value;
+      const confirmPassword =
+        document.getElementById("regConfirmPassword").value;
       const agreeTerms = document.getElementById("agreeTerms").checked;
       const submitBtn = document.getElementById("regSubmitBtn");
       const btnText = submitBtn.querySelector(".btn-text");
@@ -216,7 +250,11 @@ export function initRegister() {
       submitBtn.disabled = false;
 
       if (result.success) {
-        showToast(`🎉 ${result.message} Total user terdaftar: ${getUserCount()}`, "success", 5000);
+        showToast(
+          `🎉 ${result.message}`,
+          "success",
+          5000,
+        );
         // Redirect to login after showing success
         setTimeout(() => {
           window.location.hash = "login";
@@ -238,7 +276,11 @@ function setupSocialRegister() {
       if (typeof google !== "undefined" && google.accounts) {
         google.accounts.id.prompt();
       } else {
-        showToast("Google OAuth belum dikonfigurasi. Silakan daftar dengan email.", "warning", 5000);
+        showToast(
+          "Google OAuth belum dikonfigurasi. Silakan daftar dengan email.",
+          "warning",
+          5000,
+        );
       }
     });
   }
@@ -247,24 +289,41 @@ function setupSocialRegister() {
   if (fbBtn) {
     fbBtn.addEventListener("click", () => {
       if (typeof FB !== "undefined") {
-        FB.login((response) => {
-          if (response.authResponse) {
-            FB.api("/me", { fields: "name,email,picture.width(100)" }, (profile) => {
-              const result = socialLogin({
-                name: profile.name,
-                email: profile.email,
-                picture: profile.picture?.data?.url,
-                provider: "Facebook",
-              });
-              if (result.success) {
-                showToast(`Akun berhasil dibuat dengan Facebook! 🎉 Total: ${getUserCount()} users`, "success", 5000);
-                setTimeout(() => { window.location.hash = "dashboard"; }, 1500);
-              }
-            });
-          }
-        }, { scope: "email,public_profile" });
+        FB.login(
+          (response) => {
+            if (response.authResponse) {
+              FB.api(
+                "/me",
+                { fields: "name,email,picture.width(100)" },
+                async (profile) => {
+                  const result = await socialLogin({
+                    name: profile.name,
+                    email: profile.email,
+                    picture: profile.picture?.data?.url,
+                    provider: "Facebook",
+                  });
+                  if (result.success) {
+                    showToast(
+                      `Akun berhasil dibuat dengan Facebook! 🎉`,
+                      "success",
+                      5000,
+                    );
+                    setTimeout(() => {
+                      window.location.hash = "dashboard";
+                    }, 1500);
+                  }
+                },
+              );
+            }
+          },
+          { scope: "email,public_profile" },
+        );
       } else {
-        showToast("Facebook OAuth belum dikonfigurasi. Silakan daftar dengan email.", "warning", 5000);
+        showToast(
+          "Facebook OAuth belum dikonfigurasi. Silakan daftar dengan email.",
+          "warning",
+          5000,
+        );
       }
     });
   }

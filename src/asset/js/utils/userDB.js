@@ -1,230 +1,107 @@
 /**
- * UserDB - localStorage-based user database
- * Stores users with hashed passwords and tracks total registrations
+ * PrecisePay - User Backend Service Connector (Node.js API)
+ * File ini sekarang terhubung ke EXPRESS+SQLITE Backend di port 5000.
  */
 
-const DB_KEY = "precisepay_users";
-const SESSION_KEY = "precisepay_session";
+const API_BASE = "http://localhost:5000/api";
 
-function getUsers() {
+/**
+ * Handle API responses (Generic Fetch)
+ */
+async function apiCall(endpoint, method = "GET", body = null) {
   try {
-    const data = localStorage.getItem(DB_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
+    const options = {
+      method,
+      headers: { "Content-Type": "application/json" },
+    };
+    if (body) options.body = JSON.stringify(body);
+
+    const res = await fetch(`${API_BASE}${endpoint}`, options);
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("API Error Fetch:", error);
+    return {
+      success: false,
+      message: "Gagal menyambung ke server. Pastikan Backend (Node.js) menyala di terminal (npm start di folder backend).",
+    };
   }
 }
 
-function saveUsers(users) {
-  localStorage.setItem(DB_KEY, JSON.stringify(users));
-}
-
-// Simple hash for demo purposes (in production use bcrypt on backend)
-async function hashPassword(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + "precisepay_salt_2026");
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 /**
- * Register a new user
- * @returns {{ success: boolean, message: string }}
+ * Registrasi Email Lokal
  */
 export async function registerUser(name, email, password) {
-  const users = getUsers();
-
-  // Check if email already exists
-  const existing = users.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase()
-  );
-  if (existing) {
-    return { success: false, message: "Email sudah terdaftar. Silakan login." };
-  }
-
-  // Validate password strength
-  if (password.length < 6) {
-    return { success: false, message: "Password minimal 6 karakter." };
-  }
-
-  const hashedPass = await hashPassword(password);
-
-  const newUser = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-    name: name.trim(),
-    email: email.toLowerCase().trim(),
-    password: hashedPass,
-    provider: "email",
-    avatar: name.trim().charAt(0).toUpperCase() + (name.trim().split(" ")[1] || "").charAt(0).toUpperCase(),
-    role: "Senior Developer",
-    createdAt: new Date().toISOString(),
-  };
-
-  users.push(newUser);
-  saveUsers(users);
-
-  return { success: true, message: "Registrasi berhasil! Silakan login.", user: newUser };
+  return await apiCall("/auth/register", "POST", { name, email, password });
 }
 
 /**
- * Login with email and password
- * @returns {{ success: boolean, message: string, user?: object }}
+ * Login Email Lokal + Session JWT
  */
-export async function loginUser(email, password) {
-  const users = getUsers();
-  const user = users.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (!user) {
-    return { success: false, message: "Email tidak ditemukan. Silakan daftar terlebih dahulu." };
+export async function loginUser(email, password, remember = false) {
+  const result = await apiCall("/auth/login", "POST", { email, password });
+  if (result.success && result.token) {
+    localStorage.setItem("userJWT", result.token);
+    localStorage.setItem("userSessionData", JSON.stringify(result.user));
   }
-
-  if (user.provider !== "email") {
-    return {
-      success: false,
-      message: `Akun ini terdaftar menggunakan ${user.provider}. Silakan login dengan ${user.provider}.`,
-    };
-  }
-
-  const hashedPass = await hashPassword(password);
-  if (user.password !== hashedPass) {
-    return { success: false, message: "Password salah. Coba lagi atau reset password." };
-  }
-
-  // Create session
-  setSession(user);
-
-  return { success: true, message: "Login berhasil!", user };
+  return result;
 }
 
 /**
- * Login/Register with social provider (Google/Facebook)
+ * Social Login (Google / Facebook) + Generate JWT
  */
-export function socialLogin(profile) {
-  const users = getUsers();
-  let user = users.find(
-    (u) => u.email.toLowerCase() === profile.email.toLowerCase()
-  );
-
-  if (!user) {
-    // Auto-register
-    user = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-      name: profile.name,
-      email: profile.email.toLowerCase(),
-      password: null,
-      provider: profile.provider,
-      avatar: profile.picture || (profile.name.charAt(0).toUpperCase() + (profile.name.split(" ")[1] || "").charAt(0).toUpperCase()),
-      role: "User",
-      createdAt: new Date().toISOString(),
-    };
-    users.push(user);
-    saveUsers(users);
+export async function socialLogin(profile) {
+  const result = await apiCall("/auth/social", "POST", profile);
+  if (result.success && result.token) {
+    localStorage.setItem("userJWT", result.token);
+    localStorage.setItem("userSessionData", JSON.stringify(result.user));
   }
-
-  setSession(user);
-  return { success: true, user };
+  return result;
 }
 
 /**
- * Request password reset
+ * Ambil Total User Stats
  */
-export function requestPasswordReset(email) {
-  const users = getUsers();
-  const user = users.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (!user) {
-    return { success: false, message: "Email tidak ditemukan di sistem kami." };
-  }
-
-  if (user.provider !== "email") {
-    return {
-      success: false,
-      message: `Akun ini menggunakan ${user.provider}. Reset password tidak diperlukan.`,
-    };
-  }
-
-  // Generate a reset token (simulated)
-  const resetToken = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
-  user.resetToken = resetToken;
-  user.resetExpiry = Date.now() + 3600000; // 1 hour
-  saveUsers(users);
-
-  return {
-    success: true,
-    message: `Link reset password telah dikirim ke ${email}. Silakan cek inbox email Anda.`,
-    token: resetToken,
-  };
+export async function getUserCount() {
+  const data = await apiCall("/users/count");
+  return data.success ? data.count : 0;
 }
 
 /**
- * Reset password with token
+ * Mengirim Permintaan Token Reset via Nodemailer (Kirim Email)
+ */
+export async function requestPasswordReset(email) {
+  return await apiCall("/auth/forgot-password", "POST", { email });
+}
+
+/**
+ * Verifikasi Kode Token Saja
+ */
+export async function verifyResetToken(token) {
+  return await apiCall("/auth/verify-token", "POST", { token });
+}
+
+/**
+ * Menggunakan Kode Reset Token + Simpan Password Baru
  */
 export async function resetPassword(token, newPassword) {
-  const users = getUsers();
-  const user = users.find((u) => u.resetToken === token);
-
-  if (!user) {
-    return { success: false, message: "Token reset tidak valid." };
-  }
-
-  if (Date.now() > user.resetExpiry) {
-    return { success: false, message: "Token reset sudah kadaluarsa. Silakan request ulang." };
-  }
-
-  if (newPassword.length < 6) {
-    return { success: false, message: "Password minimal 6 karakter." };
-  }
-
-  user.password = await hashPassword(newPassword);
-  delete user.resetToken;
-  delete user.resetExpiry;
-  saveUsers(users);
-
-  return { success: true, message: "Password berhasil direset! Silakan login." };
+  return await apiCall("/auth/reset-password", "POST", { token, newPassword });
 }
 
-/**
- * Get total registered user count
- */
-export function getUserCount() {
-  return getUsers().length;
-}
+/* ========================================================================== */
+/*                          Manajemen Session Lokal (JWT)                     */
+/* ========================================================================== */
 
-/**
- * Session management
- */
-export function setSession(user) {
-  const session = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    avatar: user.avatar,
-    role: user.role,
-    provider: user.provider,
-    token: "jwt_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 12),
-    loginAt: new Date().toISOString(),
-  };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+export function isLoggedIn() {
+  return !!localStorage.getItem("userJWT");
 }
 
 export function getSession() {
-  try {
-    const data = localStorage.getItem(SESSION_KEY);
-    return data ? JSON.parse(data) : null;
-  } catch {
-    return null;
-  }
+  const data = localStorage.getItem("userSessionData");
+  return data ? JSON.parse(data) : null;
 }
 
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
-}
-
-export function isLoggedIn() {
-  return getSession() !== null;
+  localStorage.removeItem("userJWT");
+  localStorage.removeItem("userSessionData");
 }

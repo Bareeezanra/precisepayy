@@ -98,7 +98,7 @@ export function initDashboard() {
     window.location.hash = "login";
     return;
   }
-
+   
   document.body.classList.add("dashboard-active");
   initSidebar();
 
